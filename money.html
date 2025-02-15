@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家計簿アプリ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select, button {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+        .list {
+            margin-top: 20px;
+        }
+        .list div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: #e3f2fd;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .summary {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>家計簿アプリ</h1>
+    <div class="container">
+        <input type="text" id="desc" placeholder="内容を入力">
+        <input type="number" id="amount" placeholder="金額を入力">
+        <select id="type">
+            <option value="income">収入</option>
+            <option value="expense">支出</option>
+        </select>
+        <button onclick="addTransaction()">追加</button>
+
+        <div class="summary">
+            <p>合計: <span id="total">0</span> 円</p>
+        </div>
+
+        <div class="list" id="list"></div>
+    </div>
+
+    <script>
+        let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+
+        function addTransaction() {
+            const desc = document.getElementById("desc").value;
+            const amount = parseFloat(document.getElementById("amount").value);
+            const type = document.getElementById("type").value;
+
+            if (!desc || isNaN(amount)) return alert("入力してください");
+
+            const transaction = { id: Date.now(), desc, amount: type === "expense" ? -amount : amount };
+            transactions.push(transaction);
+            localStorage.setItem("transactions", JSON.stringify(transactions));
+
+            document.getElementById("desc").value = "";
+            document.getElementById("amount").value = "";
+            
+            renderTransactions();
+        }
+
+        function deleteTransaction(id) {
+            transactions = transactions.filter(t => t.id !== id);
+            localStorage.setItem("transactions", JSON.stringify(transactions));
+            renderTransactions();
+        }
+
+        function renderTransactions() {
+            const list = document.getElementById("list");
+            list.innerHTML = "";
+            let total = 0;
+
+            transactions.forEach(t => {
+                total += t.amount;
+                const item = document.createElement("div");
+                item.innerHTML = `
+                    ${t.desc} : ${t.amount.toLocaleString()}円
+                    <button class="delete-btn" onclick="deleteTransaction(${t.id})">削除</button>
+                `;
+                list.appendChild(item);
+            });
+
+            document.getElementById("total").textContent = total.toLocaleString();
+        }
+
+        renderTransactions();
+    </script>
+
+</body>
+</html>
